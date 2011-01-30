@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.minecraft.server.WorldServer;
 import org.bukkit.World;
@@ -528,8 +529,10 @@ public class iListen extends PlayerListener {
 		    return;
 		}
 
-		Messaging.send("(MSG) <" + player.getName() + "> " + Misc.combineSplit(2, split, " "));
-		Messaging.send(who, "(MSG) <" + player.getName() + "> " + Misc.combineSplit(2, split, " "));
+		String msg = Misc.combineSplit(2, split, " ");		
+		Messaging.send("&bTo: <" + who.getName() + "> " + msg);
+		Messaging.send(who, "&bFrom: <" + player.getName() + "> " + msg);
+		log.log(Level.INFO, "<"+player.getName() +"->"+ who.getName()+"> " + msg);
 
 		if (isAFK(who)) {
 		    Messaging.send("&7This player is currently away.");
@@ -739,93 +742,97 @@ public class iListen extends PlayerListener {
 
 	if(Misc.isEither(base, "/playerlist", "/online") || Misc.is(base, "/who")) {
 	    if(split.length == 2) {
-		if (!General.Permissions.Security.permission(player, "general.player-info")) {
-		    return;
-		}
-
-		Player lookup = Misc.playerMatch(split[1]);
-		String name = lookup.getName();
-		String displayName = lookup.getDisplayName();
-		String bar = "";
-		String location = "";
-
-		if(General.health) {
-		    int health = lookup.getHealth();
-		    int length = 10;
-		    int bars = Math.round(health/2);
-		    int remainder = length-bars;
-		    String hb_color = ((bars >= 7) ? "&2" : ((bars < 7 && bars >= 3) ? "&e" : ((bars < 3) ? "&c" : "&2")));
-		    bar = " &f["+ hb_color + Misc.repeat('|', bars) + "&7" + Misc.repeat('|', remainder) + "&f]";
-		}
-
-		if(General.coords) {
-		    int x = (int)lookup.getLocation().getX();
-		    int y = (int)lookup.getLocation().getY();
-		    int z = (int)lookup.getLocation().getZ();
-		    location = x+"x, "+y+"y, "+z+"z";
-		}
-
-		Messaging.send("&f------------------------------------------------");
-		Messaging.send("&e Player &f["+name+"/"+displayName+"]&e Info:");
-		Messaging.send("&f------------------------------------------------");
-		Messaging.send("&6 Username: &f" + name + ((General.health) ? bar : ""));
-
-		if(General.coords) {
-		    Messaging.send("&6 -&e Location: &f" + location);
-		}
-
-		Messaging.send("&6 -&e Status: &f" + ((isAFK(lookup)) ? "AFK ("+AFK.get(lookup)+")" : "Around."));
-
-		Messaging.send("&f------------------------------------------------");
-	    } else {
-		ArrayList<Player> olist = new ArrayList<Player>();
-		Player[] players = new Player[]{};
-
-		for(Player p : plugin.getServer().getOnlinePlayers()) {
-		    if(p == null || !p.isOnline()) { continue; } else {
-			olist.add(p);
-		    }
-		}
-
-		// Cast it to something empty to prevent nulls / empties
-		players = olist.toArray(players);
-
-		if(players.length <= 1 || olist.isEmpty()) {
-		    Messaging.send("&ePlayer list (1):");
-		    Messaging.send("&f - Just you.");
-		    Messaging.send(" ");
+			if (!General.Permissions.Security.permission(player, "general.player-info")) {
+			    return;
+			}
+	
+			Player lookup = Misc.playerMatch(split[1]);
+			String name = lookup.getName();
+			String displayName = lookup.getDisplayName();
+			String bar = "";
+			String location = "";
+	
+			if(General.health) {
+			    int health = lookup.getHealth();
+			    int length = 10;
+			    int bars = Math.round(health/2);
+			    int remainder = length-bars;
+			    String hb_color = ((bars >= 7) ? "&2" : ((bars < 7 && bars >= 3) ? "&e" : ((bars < 3) ? "&c" : "&2")));
+			    bar = " &f["+ hb_color + Misc.repeat('|', bars) + "&7" + Misc.repeat('|', remainder) + "&f]";
+			}
+	
+			if(General.coords) {
+			    int x = (int)lookup.getLocation().getX();
+			    int y = (int)lookup.getLocation().getY();
+			    int z = (int)lookup.getLocation().getZ();
+			    location = x+"x, "+y+"y, "+z+"z";
+			}
+	
+			Messaging.send("&f------------------------------------------------");
+			Messaging.send("&e Player &f["+name+"/"+displayName+"]&e Info:");
+			Messaging.send("&f------------------------------------------------");
+			Messaging.send("&6 Username: &f" + name + ((General.health) ? bar : ""));
+	
+			if(General.coords) {
+			    Messaging.send("&6 -&e Location: &f" + location);
+			}
+	
+			Messaging.send("&6 -&e Status: &f" + ((isAFK(lookup)) ? "AFK ("+AFK.get(lookup)+")" : "Around."));
+	
+			Messaging.send("&f------------------------------------------------");
 		} else {
-		    int online = players.length;
-		    ArrayList<String> list = new ArrayList<String>();
-		    String currently = "";
-		    int on = 0, perLine = 5, i = 0;
-
-		    for(Player current : players) {
-				if(current == null) { ++on; continue; }
-				if(i == perLine) { 
-					list.add(currently); 
-					currently = ""; 
-					i = 0; 
+				ArrayList<Player> olist = new ArrayList<Player>();
+				Player[] players = new Player[]{};
+		
+				for(Player p : plugin.getServer().getOnlinePlayers()) {
+				    if(p == null || !p.isOnline()) { continue; } else {
+					olist.add(p);
+				    }
 				}
-				
-				currently += (++on >= online) ? current.getName() : current.getName() + ", ";
-				++i;
+		
+				// Cast it to something empty to prevent nulls / empties
+				players = olist.toArray(players);
+		
+				if(players.length <= 1 || olist.isEmpty()) {
+				    Messaging.send("&7Just you. Why don't you invite some friends?");
+				    Messaging.send(" ");
+				} else {
+				    int online = players.length;
+				    ArrayList<String> list = new ArrayList<String>();
+				    
+				    //Display the number of players on the same line
+				    String currently = "&3" + online + " players: &b";
+				    
+				    //We start i=1 here so the first line only
+				    //	has 4, because we're prepending the 
+				    //	X players: to the front
+				    int on = 0, perLine = 4, i = 1;
+		
+				    for(Player current : players) {
+						if(current == null) { 
+							on++; 
+							continue; 
+						}
+						if(i == perLine) {
+							list.add(currently); 
+							currently = "&b"; 
+							i = 0; 
+						}
+						currently += (++on >= online) ? current.getName() : current.getName() + "&3,&b ";
+						i++;
+				    }
+		
+				    list.add(currently); 
+		
+				    //Messaging.send("&ePlayers list ("+on+"):");
+				    //Display the list of players from now on
+				    for(String line : list) {
+				    	Messaging.send(line);
+				    }
+		
+				    Messaging.send(" ");
+			    }
 		    }
-
-		    //Always append the line to the list
-		    //	because there may be extra that didn't get added
-		    //	when i == perLine
-			list.add(currently);
-
-		    Messaging.send("&ePlayers list ("+on+"):");
-
-		    for(String line : list) {
-		    	Messaging.send(line);
-		    }
-
-		    Messaging.send(" ");
 		}
-	    }
-	}
     }
 }
