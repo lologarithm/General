@@ -97,7 +97,7 @@ public class General extends JavaPlugin {
 	// Register
         registerEvents();
 
-	log.info(Messaging.bracketize(name) + " version " + Messaging.bracketize(version) + " ("+codename+") loaded");
+	log.info(Messaging.bracketize(name) + " version " + Messaging.bracketize(version) + " ("+codename+") loaded (Minecarts.com)");
     }
 
     public void onDisable() {
