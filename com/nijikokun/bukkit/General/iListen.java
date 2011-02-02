@@ -16,6 +16,8 @@ import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.Location;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -67,9 +69,9 @@ public class iListen extends PlayerListener {
     }
 
     private Location spawn(Player player) {
-	double x = (server.m + 0.5D);
-	double y = server.e(this.server.m, this.server.o) + 1.5D;
-	double z = server.o + 0.5D;
+	double x = (server.spawnX + 0.5D);
+	double y = server.e(this.server.spawnX, this.server.spawnZ) + 1.5D;
+	double z = server.spawnZ + 0.5D;
 	float rotX = 0.0F;
 	float rotY = 0.0F;
 
@@ -77,7 +79,8 @@ public class iListen extends PlayerListener {
     }
 
     public long getTime() {
-        return plugin.getServer().getTime();
+    	return plugin.getServer().getWorlds()[0].getTime();
+        //return plugin.getServer().getTime();
     }
 
     public long getRelativeTime() {
@@ -350,8 +353,8 @@ public class iListen extends PlayerListener {
 		return;
 	    }
 	    
-	    server.m = (int)Math.ceil(player.getLocation().getX());
-	    server.o = (int)Math.ceil(player.getLocation().getZ());
+	    server.spawnX = (int)Math.ceil(player.getLocation().getX());
+	    server.spawnZ = (int)Math.ceil(player.getLocation().getZ());
 	    
 	    Messaging.send("&eSpawn position changed to where you are standing.");
 	}
